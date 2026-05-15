@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNI Membership vs. R1 Institutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold:      #FA5C47;
+  --gold-lt:   #FDDDD9;
+  --teal:      #7B2D4E;
+  --teal-lt:   #F0DAEA;
+  --purple:    #6B8FD4;
+  --purple-lt: #D8E4F7;
+  --bg:        #FAF8F5;
+  --surface:   #FFFFFF;
+  --border:    rgba(26,20,16,0.09);
+  --text:      #1A1410;
+  --muted:     #7A7068;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+}
+
+.page { max-width: 1100px; margin: 0 auto; }
+
+/* Header */
+.header { margin-bottom: 2rem; }
+.eyebrow { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+h1 { font-family: 'Gowun Batang', serif; font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 0.5rem; }
+.subtitle { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 640px; }
+
+/* Stat tiles */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.75rem; }
+.stat { background: var(--surface); border-radius: 12px; border: 1px solid var(--border); padding: 1rem 1.1rem; }
+.stat-lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.stat-val { font-family: 'Gowun Batang', serif; font-size: 28px; font-weight: 700; line-height: 1; }
+.stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.stat.s-member  { background: var(--gold-lt); border-color: rgba(250,92,71,0.2); }
+.stat.s-nonmember { background: var(--teal-lt); border-color: rgba(123,45,78,0.2); }
+
+/* Viz strip */
+.viz-row { display: flex; gap: 1.5rem; margin-bottom: 1.75rem; align-items: stretch; }
+.donut-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-shrink: 0; }
+.donut-legend { display: flex; flex-direction: column; gap: 10px; }
+.leg-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.leg-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.leg-label { color: var(--muted); }
+.leg-val { font-weight: 600; margin-left: auto; padding-left: 12px; }
+
+.bar-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.5rem; flex: 1; }
+.bar-title { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; font-size: 11px; }
+.bar-label { width: 32px; color: var(--muted); text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 18px; background: var(--bg); border-radius: 4px; overflow: hidden; display: flex; }
+.bar-fill-m  { background: var(--gold); border-radius: 4px 0 0 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 4px; font-size: 9px; color: white; font-weight: 500; overflow: hidden; min-width: 0; transition: width 0.4s; }
+.bar-fill-nm { background: var(--teal); display: flex; align-items: center; justify-content: flex-end; padding-right: 4px; font-size: 9px; color: white; font-weight: 500; overflow: hidden; min-width: 0; transition: width 0.4s; }
+
+/* Controls */
+.controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+.search-box { flex: 1; min-width: 200px; max-width: 320px; position: relative; }
+.search-box input { width: 100%; padding: 8px 12px 8px 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-family: 'Outfit', sans-serif; font-size: 13px; color: var(--text); outline: none; }
+.search-box input:focus { border-color: var(--gold); }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--muted); pointer-events: none; }
+.filter-btn { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface); font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.14s; white-space: nowrap; }
+.filter-btn:hover { background: var(--bg); }
+.filter-btn.active-m  { background: var(--gold-lt); border-color: var(--gold); color: var(--gold); font-weight: 500; }
+.filter-btn.active-nm { background: var(--teal-lt); border-color: var(--teal); color: var(--teal); font-weight: 500; }
+.filter-btn.active-all { background: var(--purple-lt); border-color: var(--purple); color: #1A4080; font-weight: 500; }
+
+.sort-group { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+.sort-label { font-size: 11px; color: var(--muted); }
+select { padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--text); cursor: pointer; outline: none; }
+
+/* Table */
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+.result-count { font-size: 11px; color: var(--muted); padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); background: var(--bg); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { text-align: left; padding: 10px 14px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--border); font-weight: 500; cursor: pointer; user-select: none; white-space: nowrap; }
+thead th:hover { color: var(--text); }
+thead th .sort-arrow { margin-left: 4px; opacity: 0.4; font-size: 9px; }
+thead th.sorted .sort-arrow { opacity: 1; }
+tbody tr { border-bottom: 0.5px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--bg); }
+td { padding: 10px 14px; vertical-align: middle; }
+.td-name { font-weight: 500; color: var(--text); line-height: 1.3; }
+.td-location { color: var(--muted); font-size: 12px; }
+.td-control { font-size: 11px; color: var(--muted); }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-yes { background: var(--gold-lt); color: #C13020; }
+.badge-no  { background: var(--teal-lt); color: var(--teal); }
+
+/* Tooltip */
+#tooltip {
+  position: fixed; pointer-events: none; background: var(--text); color: #fff;
+  font-size: 11px; padding: 5px 10px; border-radius: 6px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.1s; z-index: 200;
+}
+
+@media (max-width: 700px) {
+  .stats { grid-template-columns: 1fr 1fr; }
+  .viz-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div id="tooltip"></div>
+
+<div class="page">
+
+  <div class="header">
+    <p class="eyebrow">Coalition for Networked Information · 2025 Carnegie Classification</p>
+    <h1>R1 Institutions & CNI Membership</h1>
+    <p class="subtitle">Comparing all 187 institutions designated R1 (Very High Research Spending &amp; Doctorate Production) by Carnegie Classification against current CNI membership. Data sourced from the Carnegie Classification CSV and the CNI member list as of December 2025.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-lbl">Total R1 Institutions</p>
+      <p class="stat-val">187</p>
+      <p class="stat-sub">2025 Carnegie Classification</p>
+    </div>
+    <div class="stat s-member">
+      <p class="stat-lbl">CNI Members</p>
+      <p class="stat-val" style="color:var(--gold);">133</p>
+      <p class="stat-sub">71% of all R1 institutions</p>
+    </div>
+    <div class="stat s-nonmember">
+      <p class="stat-lbl">Not CNI Members</p>
+      <p class="stat-val" style="color:var(--teal);">54</p>
+      <p class="stat-sub">29% of all R1 institutions</p>
+    </div>
+    <div class="stat">
+      <p class="stat-lbl">CNI R1 Share</p>
+      <p class="stat-val" style="color:var(--purple);">71%</p>
+      <p class="stat-sub">of R1s are CNI members</p>
+    </div>
+  </div>
+
+  <div class="viz-row">
+    <div class="donut-wrap">
+      <canvas id="donut" width="140" height="140" role="img" aria-label="Donut chart: 133 CNI members (71%) vs 54 non-members (29%) of 187 R1 institutions">71% CNI members, 29% not members</canvas>
+      <div class="donut-legend">
+        <div class="leg-item">
+          <div class="leg-dot" style="background:var(--gold);"></div>
+          <span class="leg-label">CNI member</span>
+          <span class="leg-val" style="color:var(--gold);">133</span>
+        </div>
+        <div class="leg-item">
+          <div class="leg-dot" style="background:var(--teal);"></div>
+          <span class="leg-label">Not a member</span>
+          <span class="leg-val" style="color:var(--teal);">54</span>
+        </div>
+        <div style="margin-top:10px; padding-top:10px; border-top:0.5px solid var(--border);">
+          <div class="leg-item" style="font-size:11px; color:var(--muted);">Public R1s in CNI: <strong style="color:var(--text); margin-left:4px;" id="pub-count">—</strong></div>
+          <div class="leg-item" style="font-size:11px; color:var(--muted);">Private R1s in CNI: <strong style="color:var(--text); margin-left:4px;" id="priv-count">—</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bar-wrap">
+      <p class="bar-title">Top states by R1 count — CNI member vs. non-member</p>
+      <div id="state-bars"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search" placeholder="Search institution name or state…" autocomplete="off">
+    </div>
+    <button class="filter-btn active-all" data-filter="all">All (187)</button>
+    <button class="filter-btn" data-filter="Yes">CNI Members (133)</button>
+    <button class="filter-btn" data-filter="No">Not Members (54)</button>
+    <div class="sort-group">
+      <span class="sort-label">Sort:</span>
+      <select id="sort-sel">
+        <option value="name-asc">Name A–Z</option>
+        <option value="name-desc">Name Z–A</option>
+        <option value="state-asc">State A–Z</option>
+        <option value="member-first">Members first</option>
+        <option value="nonmember-first">Non-members first</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="result-count" id="result-count">Showing 187 institutions</div>
+    <table>
+      <thead>
+        <tr>
+          <th data-col="Carnegie Name">Institution <span class="sort-arrow">▲</span></th>
+          <th data-col="state_abbr">State <span class="sort-arrow"></span></th>
+          <th data-col="Control">Control <span class="sort-arrow"></span></th>
+          <th data-col="CNI Member">CNI Member <span class="sort-arrow"></span></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const DATA = [{"Carnegie Name": "American University", "City": "Washington", "State": "District of Columbia", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "American University", "state_abbr": "DC"}, {"Carnegie Name": "Arizona State University Campus Immersion", "City": "Tempe", "State": "Arizona", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Arizona State University", "state_abbr": "AZ"}, {"Carnegie Name": "Auburn University", "City": "Auburn", "State": "Alabama", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Auburn University", "state_abbr": "AL"}, {"Carnegie Name": "Baylor College of Medicine", "City": "Houston", "State": "Texas", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "TX"}, {"Carnegie Name": "Baylor University", "City": "Waco", "State": "Texas", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Baylor University", "state_abbr": "TX"}, {"Carnegie Name": "Binghamton University", "City": "Vestal", "State": "New York", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NY"}, {"Carnegie Name": "Boston College", "City": "Chestnut Hill", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Boston College", "state_abbr": "MA"}, {"Carnegie Name": "Boston University", "City": "Boston", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Boston University", "state_abbr": "MA"}, {"Carnegie Name": "Brandeis University", "City": "Waltham", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Brandeis University", "state_abbr": "MA"}, {"Carnegie Name": "Brigham Young University", "City": "Provo", "State": "Utah", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Brigham Young University", "state_abbr": "UT"}, {"Carnegie Name": "Brown University", "City": "Providence", "State": "Rhode Island", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Brown University", "state_abbr": "RI"}, {"Carnegie Name": "California Institute of Technology", "City": "Pasadena", "State": "California", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "California Institute of Technology", "state_abbr": "CA"}, {"Carnegie Name": "Carnegie Mellon University", "City": "Pittsburgh", "State": "Pennsylvania", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Carnegie Mellon University", "state_abbr": "PA"}, {"Carnegie Name": "Case Western Reserve University", "City": "Cleveland", "State": "Ohio", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Case Western Reserve University", "state_abbr": "OH"}, {"Carnegie Name": "Clemson University", "City": "Clemson", "State": "South Carolina", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Clemson University", "state_abbr": "SC"}, {"Carnegie Name": "Colorado School of Mines", "City": "Golden", "State": "Colorado", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "CO"}, {"Carnegie Name": "Colorado State University-Fort Collins", "City": "Fort Collins", "State": "Colorado", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Colorado State University", "state_abbr": "CO"}, {"Carnegie Name": "Columbia University in the City of New York", "City": "New York", "State": "New York", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Columbia University", "state_abbr": "NY"}, {"Carnegie Name": "Cornell University", "City": "Ithaca", "State": "New York", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Cornell University", "state_abbr": "NY"}, {"Carnegie Name": "CUNY Graduate School and University Center", "City": "New York", "State": "New York", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NY"}, {"Carnegie Name": "Dartmouth College", "City": "Hanover", "State": "New Hampshire", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Dartmouth College", "state_abbr": "NH"}, {"Carnegie Name": "Drexel University", "City": "Philadelphia", "State": "Pennsylvania", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "PA"}, {"Carnegie Name": "Duke University", "City": "Durham", "State": "North Carolina", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Duke University", "state_abbr": "NC"}, {"Carnegie Name": "East Carolina University", "City": "Greenville", "State": "North Carolina", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NC"}, {"Carnegie Name": "Emory University", "City": "Atlanta", "State": "Georgia", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Emory University", "state_abbr": "GA"}, {"Carnegie Name": "Florida Atlantic University", "City": "Boca Raton", "State": "Florida", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "FL"}, {"Carnegie Name": "Florida International University", "City": "Miami", "State": "Florida", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "FL"}, {"Carnegie Name": "Florida State University", "City": "Tallahassee", "State": "Florida", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Florida State University", "state_abbr": "FL"}, {"Carnegie Name": "George Mason University", "City": "Fairfax", "State": "Virginia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "George Mason University", "state_abbr": "VA"}, {"Carnegie Name": "George Washington University", "City": "Washington", "State": "District of Columbia", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "George Washington University", "state_abbr": "DC"}, {"Carnegie Name": "Georgetown University", "City": "Washington", "State": "District of Columbia", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Georgetown University", "state_abbr": "DC"}, {"Carnegie Name": "Georgia Institute of Technology-Main Campus", "City": "Atlanta", "State": "Georgia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Georgia Institute of Technology", "state_abbr": "GA"}, {"Carnegie Name": "Georgia State University", "City": "Atlanta", "State": "Georgia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Georgia State University Library", "state_abbr": "GA"}, {"Carnegie Name": "Harvard University", "City": "Cambridge", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Harvard University", "state_abbr": "MA"}, {"Carnegie Name": "Howard University", "City": "Washington", "State": "District of Columbia", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Howard University", "state_abbr": "DC"}, {"Carnegie Name": "Indiana University-Bloomington", "City": "Bloomington", "State": "Indiana", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Indiana University", "state_abbr": "IN"}, {"Carnegie Name": "Indiana University-Purdue University-Indianapolis", "City": "Indianapolis", "State": "Indiana", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Indiana University Indianapolis", "state_abbr": "IN"}, {"Carnegie Name": "Iowa State University", "City": "Ames", "State": "Iowa", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Iowa State University", "state_abbr": "IA"}, {"Carnegie Name": "Johns Hopkins University", "City": "Baltimore", "State": "Maryland", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Johns Hopkins University", "state_abbr": "MD"}, {"Carnegie Name": "Kansas State University", "City": "Manhattan", "State": "Kansas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Kansas State University", "state_abbr": "KS"}, {"Carnegie Name": "Kent State University at Kent", "City": "Kent", "State": "Ohio", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Kent State University", "state_abbr": "OH"}, {"Carnegie Name": "Lehigh University", "City": "Bethlehem", "State": "Pennsylvania", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Lehigh University", "state_abbr": "PA"}, {"Carnegie Name": "Louisiana State University and Agricultural & Mechanical College", "City": "Baton Rouge", "State": "Louisiana", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "LA"}, {"Carnegie Name": "Loyola University Chicago", "City": "Chicago", "State": "Illinois", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Loyola University Chicago", "state_abbr": "IL"}, {"Carnegie Name": "Massachusetts Institute of Technology", "City": "Cambridge", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "MA"}, {"Carnegie Name": "Medical University of South Carolina", "City": "Charleston", "State": "South Carolina", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "SC"}, {"Carnegie Name": "Michigan State University", "City": "East Lansing", "State": "Michigan", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Michigan State University", "state_abbr": "MI"}, {"Carnegie Name": "Michigan Technological University", "City": "Houghton", "State": "Michigan", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MI"}, {"Carnegie Name": "Mississippi State University", "City": "Mississippi State", "State": "Mississippi", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Mississippi State University Libraries", "state_abbr": "MS"}, {"Carnegie Name": "Missouri University of Science and Technology", "City": "Rolla", "State": "Missouri", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MO"}, {"Carnegie Name": "Montana State University", "City": "Bozeman", "State": "Montana", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Montana State University", "state_abbr": "MT"}, {"Carnegie Name": "New Jersey Institute of Technology", "City": "Newark", "State": "New Jersey", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NJ"}, {"Carnegie Name": "New Mexico State University-Main Campus", "City": "Las Cruces", "State": "New Mexico", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NM"}, {"Carnegie Name": "New York University", "City": "New York", "State": "New York", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "New York University", "state_abbr": "NY"}, {"Carnegie Name": "North Carolina State University at Raleigh", "City": "Raleigh", "State": "North Carolina", "Control": "Public", "CNI Member": "Yes", "CNI Name": "North Carolina State University", "state_abbr": "NC"}, {"Carnegie Name": "North Dakota State University-Main Campus", "City": "Fargo", "State": "North Dakota", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "ND"}, {"Carnegie Name": "Northeastern University", "City": "Boston", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Northeastern University", "state_abbr": "MA"}, {"Carnegie Name": "Northern Arizona University", "City": "Flagstaff", "State": "Arizona", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "AZ"}, {"Carnegie Name": "Northwestern University", "City": "Evanston", "State": "Illinois", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Northwestern University", "state_abbr": "IL"}, {"Carnegie Name": "Nova Southeastern University", "City": "Fort Lauderdale", "State": "Florida", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "FL"}, {"Carnegie Name": "Ohio State University-Main Campus", "City": "Columbus", "State": "Ohio", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Ohio State University", "state_abbr": "OH"}, {"Carnegie Name": "Ohio University-Main Campus", "City": "Athens", "State": "Ohio", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Ohio University", "state_abbr": "OH"}, {"Carnegie Name": "Oklahoma State University-Main Campus", "City": "Stillwater", "State": "Oklahoma", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Oklahoma State University", "state_abbr": "OK"}, {"Carnegie Name": "Old Dominion University", "City": "Norfolk", "State": "Virginia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Old Dominion University", "state_abbr": "VA"}, {"Carnegie Name": "Oregon State University", "City": "Corvallis", "State": "Oregon", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Oregon State University", "state_abbr": "OR"}, {"Carnegie Name": "Pennsylvania State University-Main Campus", "City": "University Park", "State": "Pennsylvania", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Pennsylvania State University", "state_abbr": "PA"}, {"Carnegie Name": "Princeton University", "City": "Princeton", "State": "New Jersey", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Princeton University", "state_abbr": "NJ"}, {"Carnegie Name": "Purdue University-Main Campus", "City": "West Lafayette", "State": "Indiana", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Purdue University", "state_abbr": "IN"}, {"Carnegie Name": "Rensselaer Polytechnic Institute", "City": "Troy", "State": "New York", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Rensselaer Polytechnic Institute Libraries", "state_abbr": "NY"}, {"Carnegie Name": "Rice University", "City": "Houston", "State": "Texas", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Rice University", "state_abbr": "TX"}, {"Carnegie Name": "Rutgers University-New Brunswick", "City": "New Brunswick", "State": "New Jersey", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Rutgers University", "state_abbr": "NJ"}, {"Carnegie Name": "Saint Louis University", "City": "Saint Louis", "State": "Missouri", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "MO"}, {"Carnegie Name": "San Diego State University", "City": "San Diego", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "San Diego State University", "state_abbr": "CA"}, {"Carnegie Name": "Southern Illinois University-Carbondale", "City": "Carbondale", "State": "Illinois", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "IL"}, {"Carnegie Name": "Southern Methodist University", "City": "Dallas", "State": "Texas", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Southern Methodist University", "state_abbr": "TX"}, {"Carnegie Name": "Stanford University", "City": "Stanford", "State": "California", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Stanford University", "state_abbr": "CA"}, {"Carnegie Name": "Stony Brook University", "City": "Stony Brook", "State": "New York", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Stony Brook University", "state_abbr": "NY"}, {"Carnegie Name": "Syracuse University", "City": "Syracuse", "State": "New York", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Syracuse University", "state_abbr": "NY"}, {"Carnegie Name": "Temple University", "City": "Philadelphia", "State": "Pennsylvania", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Temple University", "state_abbr": "PA"}, {"Carnegie Name": "Texas A&M University-College Station", "City": "College Station", "State": "Texas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Texas A&M University", "state_abbr": "TX"}, {"Carnegie Name": "Texas Tech University", "City": "Lubbock", "State": "Texas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Texas Tech University", "state_abbr": "TX"}, {"Carnegie Name": "The Catholic University of America", "City": "Washington", "State": "District of Columbia", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "DC"}, {"Carnegie Name": "The University of Alabama", "City": "Tuscaloosa", "State": "Alabama", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "AL"}, {"Carnegie Name": "The University of Montana", "City": "Missoula", "State": "Montana", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MT"}, {"Carnegie Name": "The University of Tennessee Health Science Center", "City": "Memphis", "State": "Tennessee", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "TN"}, {"Carnegie Name": "The University of Tennessee-Knoxville", "City": "Knoxville", "State": "Tennessee", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Tennessee", "state_abbr": "TN"}, {"Carnegie Name": "The University of Texas at Arlington", "City": "Arlington", "State": "Texas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Texas at Arlington", "state_abbr": "TX"}, {"Carnegie Name": "The University of Texas at Austin", "City": "Austin", "State": "Texas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Texas at Austin", "state_abbr": "TX"}, {"Carnegie Name": "The University of Texas at Dallas", "City": "Richardson", "State": "Texas", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "TX"}, {"Carnegie Name": "The University of Texas at El Paso", "City": "El Paso", "State": "Texas", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "TX"}, {"Carnegie Name": "The University of Texas at San Antonio", "City": "San Antonio", "State": "Texas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Texas at San Antonio", "state_abbr": "TX"}, {"Carnegie Name": "The University of Texas Health Science Center at Houston", "City": "Houston", "State": "Texas", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "TX"}, {"Carnegie Name": "The University of Texas Health Science Center at San Antonio", "City": "San Antonio", "State": "Texas", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "TX"}, {"Carnegie Name": "Tufts University", "City": "Medford", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Tufts University", "state_abbr": "MA"}, {"Carnegie Name": "Tulane University of Louisiana", "City": "New Orleans", "State": "Louisiana", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Tulane University", "state_abbr": "LA"}, {"Carnegie Name": "University at Albany", "City": "Albany", "State": "New York", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University at Albany, SUNY", "state_abbr": "NY"}, {"Carnegie Name": "University at Buffalo", "City": "Buffalo", "State": "New York", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University at Buffalo, SUNY", "state_abbr": "NY"}, {"Carnegie Name": "University of Alabama at Birmingham", "City": "Birmingham", "State": "Alabama", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Alabama", "state_abbr": "AL"}, {"Carnegie Name": "University of Arizona", "City": "Tucson", "State": "Arizona", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Arizona", "state_abbr": "AZ"}, {"Carnegie Name": "University of Arkansas", "City": "Fayetteville", "State": "Arkansas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Arkansas", "state_abbr": "AR"}, {"Carnegie Name": "University of California-Berkeley", "City": "Berkeley", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Berkeley", "state_abbr": "CA"}, {"Carnegie Name": "University of California-Davis", "City": "Davis", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Davis", "state_abbr": "CA"}, {"Carnegie Name": "University of California-Irvine", "City": "Irvine", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Irvine", "state_abbr": "CA"}, {"Carnegie Name": "University of California-Los Angeles", "City": "Los Angeles", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Los Angeles", "state_abbr": "CA"}, {"Carnegie Name": "University of California-Merced", "City": "Merced", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Merced", "state_abbr": "CA"}, {"Carnegie Name": "University of California-Riverside", "City": "Riverside", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Riverside", "state_abbr": "CA"}, {"Carnegie Name": "University of California-San Diego", "City": "La Jolla", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, San Diego", "state_abbr": "CA"}, {"Carnegie Name": "University of California-San Francisco", "City": "San Francisco", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, San Francisco", "state_abbr": "CA"}, {"Carnegie Name": "University of California-Santa Barbara", "City": "Santa Barbara", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Santa Barbara", "state_abbr": "CA"}, {"Carnegie Name": "University of California-Santa Cruz", "City": "Santa Cruz", "State": "California", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of California, Santa Cruz", "state_abbr": "CA"}, {"Carnegie Name": "University of Central Florida", "City": "Orlando", "State": "Florida", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "FL"}, {"Carnegie Name": "University of Chicago", "City": "Chicago", "State": "Illinois", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "University of Chicago", "state_abbr": "IL"}, {"Carnegie Name": "University of Cincinnati-Main Campus", "City": "Cincinnati", "State": "Ohio", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Cincinnati", "state_abbr": "OH"}, {"Carnegie Name": "University of Colorado Boulder", "City": "Boulder", "State": "Colorado", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Colorado at Boulder", "state_abbr": "CO"}, {"Carnegie Name": "University of Colorado Denver/Anschutz Medical Campus", "City": "Denver", "State": "Colorado", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "CO"}, {"Carnegie Name": "University of Connecticut", "City": "Storrs", "State": "Connecticut", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Connecticut", "state_abbr": "CT"}, {"Carnegie Name": "University of Dayton", "City": "Dayton", "State": "Ohio", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "OH"}, {"Carnegie Name": "University of Delaware", "City": "Newark", "State": "Delaware", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Delaware", "state_abbr": "DE"}, {"Carnegie Name": "University of Denver", "City": "Denver", "State": "Colorado", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "University of Denver", "state_abbr": "CO"}, {"Carnegie Name": "University of Florida", "City": "Gainesville", "State": "Florida", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Florida", "state_abbr": "FL"}, {"Carnegie Name": "University of Georgia", "City": "Athens", "State": "Georgia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Georgia", "state_abbr": "GA"}, {"Carnegie Name": "University of Hawaii at Manoa", "City": "Honolulu", "State": "Hawaii", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Hawaii", "state_abbr": "HI"}, {"Carnegie Name": "University of Houston", "City": "Houston", "State": "Texas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Houston", "state_abbr": "TX"}, {"Carnegie Name": "University of Idaho", "City": "Moscow", "State": "Idaho", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "ID"}, {"Carnegie Name": "University of Illinois Chicago", "City": "Chicago", "State": "Illinois", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Illinois at Chicago", "state_abbr": "IL"}, {"Carnegie Name": "University of Illinois Urbana-Champaign", "City": "Champaign", "State": "Illinois", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Illinois at Urbana-Champaign", "state_abbr": "IL"}, {"Carnegie Name": "University of Iowa", "City": "Iowa City", "State": "Iowa", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Iowa", "state_abbr": "IA"}, {"Carnegie Name": "University of Kansas", "City": "Lawrence", "State": "Kansas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Kansas", "state_abbr": "KS"}, {"Carnegie Name": "University of Kentucky", "City": "Lexington", "State": "Kentucky", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Kentucky", "state_abbr": "KY"}, {"Carnegie Name": "University of Louisiana at Lafayette", "City": "Lafayette", "State": "Louisiana", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "LA"}, {"Carnegie Name": "University of Louisville", "City": "Louisville", "State": "Kentucky", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Louisville", "state_abbr": "KY"}, {"Carnegie Name": "University of Maine", "City": "Orono", "State": "Maine", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "ME"}, {"Carnegie Name": "University of Maryland, Baltimore", "City": "Baltimore", "State": "Maryland", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MD"}, {"Carnegie Name": "University of Maryland-Baltimore County", "City": "Baltimore", "State": "Maryland", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MD"}, {"Carnegie Name": "University of Maryland-College Park", "City": "College Park", "State": "Maryland", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Maryland at College Park", "state_abbr": "MD"}, {"Carnegie Name": "University of Massachusetts-Amherst", "City": "Amherst", "State": "Massachusetts", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Massachusetts Amherst", "state_abbr": "MA"}, {"Carnegie Name": "University of Massachusetts-Boston", "City": "Boston", "State": "Massachusetts", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MA"}, {"Carnegie Name": "University of Massachusetts-Lowell", "City": "Lowell", "State": "Massachusetts", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MA"}, {"Carnegie Name": "University of Memphis", "City": "Memphis", "State": "Tennessee", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "TN"}, {"Carnegie Name": "University of Miami", "City": "Coral Gables", "State": "Florida", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "University of Miami", "state_abbr": "FL"}, {"Carnegie Name": "University of Michigan-Ann Arbor", "City": "Ann Arbor", "State": "Michigan", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Michigan", "state_abbr": "MI"}, {"Carnegie Name": "University of Minnesota-Twin Cities", "City": "Minneapolis", "State": "Minnesota", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Minnesota", "state_abbr": "MN"}, {"Carnegie Name": "University of Mississippi", "City": "University", "State": "Mississippi", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Mississippi Libraries", "state_abbr": "MS"}, {"Carnegie Name": "University of Missouri-Columbia", "City": "Columbia", "State": "Missouri", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Missouri", "state_abbr": "MO"}, {"Carnegie Name": "University of Missouri-Kansas City", "City": "Kansas City", "State": "Missouri", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Missouri", "state_abbr": "MO"}, {"Carnegie Name": "University of Nebraska Medical Center", "City": "Omaha", "State": "Nebraska", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NE"}, {"Carnegie Name": "University of Nebraska-Lincoln", "City": "Lincoln", "State": "Nebraska", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Nebraska at Lincoln", "state_abbr": "NE"}, {"Carnegie Name": "University of Nevada-Las Vegas", "City": "Las Vegas", "State": "Nevada", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Nevada, Las Vegas", "state_abbr": "NV"}, {"Carnegie Name": "University of Nevada-Reno", "City": "Reno", "State": "Nevada", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Nevada, Reno", "state_abbr": "NV"}, {"Carnegie Name": "University of New Hampshire-Main Campus", "City": "Durham", "State": "New Hampshire", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NH"}, {"Carnegie Name": "University of New Mexico-Main Campus", "City": "Albuquerque", "State": "New Mexico", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of New Mexico", "state_abbr": "NM"}, {"Carnegie Name": "University of North Carolina at Chapel Hill", "City": "Chapel Hill", "State": "North Carolina", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of North Carolina, Chapel Hill", "state_abbr": "NC"}, {"Carnegie Name": "University of North Carolina at Charlotte", "City": "Charlotte", "State": "North Carolina", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "NC"}, {"Carnegie Name": "University of North Dakota", "City": "Grand Forks", "State": "North Dakota", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "ND"}, {"Carnegie Name": "University of North Texas", "City": "Denton", "State": "Texas", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of North Texas", "state_abbr": "TX"}, {"Carnegie Name": "University of Notre Dame", "City": "Notre Dame", "State": "Indiana", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "University of Notre Dame", "state_abbr": "IN"}, {"Carnegie Name": "University of Oklahoma-Norman Campus", "City": "Norman", "State": "Oklahoma", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Oklahoma", "state_abbr": "OK"}, {"Carnegie Name": "University of Oregon", "City": "Eugene", "State": "Oregon", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Oregon", "state_abbr": "OR"}, {"Carnegie Name": "University of Pennsylvania", "City": "Philadelphia", "State": "Pennsylvania", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "University of Pennsylvania", "state_abbr": "PA"}, {"Carnegie Name": "University of Pittsburgh-Pittsburgh Campus", "City": "Pittsburgh", "State": "Pennsylvania", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Pittsburgh", "state_abbr": "PA"}, {"Carnegie Name": "University of Rhode Island", "City": "Kingston", "State": "Rhode Island", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "RI"}, {"Carnegie Name": "University of Rochester", "City": "Rochester", "State": "New York", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "University of Rochester", "state_abbr": "NY"}, {"Carnegie Name": "University of South Carolina-Columbia", "City": "Columbia", "State": "South Carolina", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of South Carolina", "state_abbr": "SC"}, {"Carnegie Name": "University of South Florida", "City": "Tampa", "State": "Florida", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of South Florida", "state_abbr": "FL"}, {"Carnegie Name": "University of Southern California", "City": "Los Angeles", "State": "California", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "University of Southern California", "state_abbr": "CA"}, {"Carnegie Name": "University of Southern Mississippi", "City": "Hattiesburg", "State": "Mississippi", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "MS"}, {"Carnegie Name": "University of Texas Southwestern Medical Center", "City": "Dallas", "State": "Texas", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "TX"}, {"Carnegie Name": "University of Toledo", "City": "Toledo", "State": "Ohio", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "OH"}, {"Carnegie Name": "University of Utah", "City": "Salt Lake City", "State": "Utah", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Utah", "state_abbr": "UT"}, {"Carnegie Name": "University of Vermont", "City": "Burlington", "State": "Vermont", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "VT"}, {"Carnegie Name": "University of Virginia-Main Campus", "City": "Charlottesville", "State": "Virginia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Virginia", "state_abbr": "VA"}, {"Carnegie Name": "University of Washington-Seattle Campus", "City": "Seattle", "State": "Washington", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Washington", "state_abbr": "WA"}, {"Carnegie Name": "University of Wisconsin-Madison", "City": "Madison", "State": "Wisconsin", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Wisconsin-Madison", "state_abbr": "WI"}, {"Carnegie Name": "University of Wisconsin-Milwaukee", "City": "Milwaukee", "State": "Wisconsin", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "WI"}, {"Carnegie Name": "University of Wyoming", "City": "Laramie", "State": "Wyoming", "Control": "Public", "CNI Member": "Yes", "CNI Name": "University of Wyoming", "state_abbr": "WY"}, {"Carnegie Name": "Utah State University", "City": "Logan", "State": "Utah", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Utah State University", "state_abbr": "UT"}, {"Carnegie Name": "Vanderbilt University", "City": "Nashville", "State": "Tennessee", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Vanderbilt University", "state_abbr": "TN"}, {"Carnegie Name": "Virginia Commonwealth University", "City": "Richmond", "State": "Virginia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Virginia Commonwealth University", "state_abbr": "VA"}, {"Carnegie Name": "Virginia Polytechnic Institute and State University", "City": "Blacksburg", "State": "Virginia", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Virginia Polytechnic Institute and State University", "state_abbr": "VA"}, {"Carnegie Name": "Washington State University", "City": "Pullman", "State": "Washington", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "WA"}, {"Carnegie Name": "Washington University in St Louis", "City": "Saint Louis", "State": "Missouri", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Washington University in St. Louis", "state_abbr": "MO"}, {"Carnegie Name": "Wayne State University", "City": "Detroit", "State": "Michigan", "Control": "Public", "CNI Member": "Yes", "CNI Name": "Wayne State University", "state_abbr": "MI"}, {"Carnegie Name": "Weill Medical College of Cornell University", "City": "New York", "State": "New York", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "NY"}, {"Carnegie Name": "West Virginia University", "City": "Morgantown", "State": "West Virginia", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "WV"}, {"Carnegie Name": "William & Mary", "City": "Williamsburg", "State": "Virginia", "Control": "Public", "CNI Member": "No", "CNI Name": "", "state_abbr": "VA"}, {"Carnegie Name": "Worcester Polytechnic Institute", "City": "Worcester", "State": "Massachusetts", "Control": "Private not-for-profit", "CNI Member": "No", "CNI Name": "", "state_abbr": "MA"}, {"Carnegie Name": "Yale University", "City": "New Haven", "State": "Connecticut", "Control": "Private not-for-profit", "CNI Member": "Yes", "CNI Name": "Yale University", "state_abbr": "CT"}];
+
+// Stat counters
+const pubM  = DATA.filter(d => d.Control === 'Public' && d['CNI Member'] === 'Yes').length;
+const privM = DATA.filter(d => d.Control !== 'Public' && d['CNI Member'] === 'Yes').length;
+document.getElementById('pub-count').textContent  = pubM;
+document.getElementById('priv-count').textContent = privM;
+
+// Donut chart
+const dCtx = document.getElementById('donut').getContext('2d');
+new Chart(dCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['CNI Member (133)', 'Not Member (54)'],
+    datasets: [{ data: [133, 54], backgroundColor: ['#FA5C47', '#7B2D4E'], borderWidth: 0, hoverOffset: 6 }]
+  },
+  options: {
+    responsive: false, cutout: '68%',
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}` } } }
+  }
+});
+
+// State bars
+const stateCounts = {};
+DATA.forEach(d => {
+  const st = d.state_abbr;
+  if (!stateCounts[st]) stateCounts[st] = { m: 0, nm: 0 };
+  d['CNI Member'] === 'Yes' ? stateCounts[st].m++ : stateCounts[st].nm++;
+});
+const topStates = Object.entries(stateCounts).sort((a,b) => (b[1].m+b[1].nm) - (a[1].m+a[1].nm)).slice(0, 10);
+const maxVal = Math.max(...topStates.map(([,v]) => v.m + v.nm));
+const barsEl = document.getElementById('state-bars');
+topStates.forEach(([st, v]) => {
+  const total = v.m + v.nm;
+  const mPct = Math.round(v.m / maxVal * 100);
+  const nmPct = Math.round(v.nm / maxVal * 100);
+  barsEl.innerHTML += `<div class="bar-row">
+    <span class="bar-label">${st}</span>
+    <div class="bar-track">
+      <div class="bar-fill-m" style="width:${mPct}%">${v.m > 0 ? v.m : ''}</div>
+      <div class="bar-fill-nm" style="width:${nmPct}%">${v.nm > 0 ? v.nm : ''}</div>
+    </div>
+  </div>`;
+});
+
+// Table rendering
+let currentFilter = 'all', currentSearch = '', currentSort = 'name-asc';
+
+function render() {
+  let rows = DATA.filter(d => {
+    if (currentFilter !== 'all' && d['CNI Member'] !== currentFilter) return false;
+    if (currentSearch) {
+      const q = currentSearch.toLowerCase();
+      return d['Carnegie Name'].toLowerCase().includes(q) || d.State.toLowerCase().includes(q) || d.state_abbr.toLowerCase().includes(q) || d.City.toLowerCase().includes(q);
+    }
+    return true;
+  });
+
+  const nameKey = d => d['Carnegie Name'].replace(/^The /i, '');
+
+  rows.sort((a, b) => {
+    if (currentSort === 'name-asc')         return nameKey(a).localeCompare(nameKey(b));
+    if (currentSort === 'name-desc')        return nameKey(b).localeCompare(nameKey(a));
+    if (currentSort === 'state-asc')        return a.state_abbr.localeCompare(b.state_abbr) || nameKey(a).localeCompare(nameKey(b));
+    if (currentSort === 'member-first')     return (a['CNI Member'] === 'Yes' ? 0 : 1) - (b['CNI Member'] === 'Yes' ? 0 : 1) || nameKey(a).localeCompare(nameKey(b));
+    if (currentSort === 'nonmember-first')  return (a['CNI Member'] === 'No'  ? 0 : 1) - (b['CNI Member'] === 'No'  ? 0 : 1) || nameKey(a).localeCompare(nameKey(b));
+    return 0;
+  });
+
+  document.getElementById('result-count').textContent = `Showing ${rows.length} of 187 institutions`;
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = rows.map(d => `
+    <tr>
+      <td><div class="td-name">${d['Carnegie Name']}</div><div class="td-location">${d.City}, ${d.state_abbr}</div></td>
+      <td class="td-control">${d.state_abbr}</td>
+      <td class="td-control">${d.Control === 'Public' ? 'Public' : 'Private'}</td>
+      <td><span class="badge badge-${d['CNI Member'] === 'Yes' ? 'yes' : 'no'}">${d['CNI Member'] === 'Yes' ? '✓ Member' : '✗ Not member'}</span></td>
+    </tr>
+  `).join('');
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+    if (currentFilter === 'all') btn.classList.add('active-all');
+    else if (currentFilter === 'Yes') btn.classList.add('active-m');
+    else btn.classList.add('active-nm');
+    render();
+  });
+});
+
+document.getElementById('search').addEventListener('input', e => { currentSearch = e.target.value; render(); });
+document.getElementById('sort-sel').addEventListener('change', e => { currentSort = e.target.value; render(); });
+
+render();
+</script>
+</body>
+</html>
